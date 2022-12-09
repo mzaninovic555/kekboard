@@ -22,7 +22,7 @@ let guild;
 
 client.on('ready', () => {
     console.log('Counting keks...')
-    guild = client.guilds.cache.find(guild => guild.id === /*process.env.ROSSONERI_GUILD_ID*/'1050546087154417765');
+    guild = client.guilds.cache.find(guild => guild.id === process.env.ROSSONERI_GUILD_ID);
     if (client.channels.cache.filter(channel => channel.name === 'kekboard').size === 0) {
         guild.channels.create({
             name: 'kekboard',
