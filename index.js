@@ -1,7 +1,7 @@
 require('dotenv').config();
 const {Client, GatewayIntentBits, Partials, EmbedBuilder} = require('discord.js');
 
-const requiredKeks = 1;
+const requiredKeks = 7;
 const kekEmote = '<:kek:959573349502169159>';
 
 const client = new Client({
@@ -20,14 +20,15 @@ const client = new Client({
 let kekBoardChannel;
 let guild;
 
-client.on('ready', () => {
+client.on('ready', async () => {
     console.log('Counting keks...')
     guild = client.guilds.cache.find(guild => guild.id === process.env.ROSSONERI_GUILD_ID);
     if (client.channels.cache.filter(channel => channel.name === 'kekboard').size === 0) {
-        guild.channels.create({
+        console.log("Creating #kekboard");
+        await guild.channels.create({
             name: 'kekboard',
             reason: 'Needed for keeping count of keks'
-        }).then(console.log).catch(console.error);
+        }).then(() => console.log('Created #kekboard')).catch(console.error);
     }
     kekBoardChannel = client.channels.cache.find(channel => channel.name === 'kekboard');
 });
@@ -69,7 +70,7 @@ client.on('messageReactionAdd', async reaction => {
         });
     } else if (reaction.count >= requiredKeks) {
         const message = await fetchEmbedsWithMessageId(reactionId);
-        message.edit(`${reaction.emoji} ${reaction.count}  |  ${reaction.message.channel}`);
+        message?.edit(`${reaction.emoji} ${reaction.count}  |  ${reaction.message.channel}`);
     }
 });
 
@@ -90,10 +91,10 @@ client.on('messageReactionRemove', async reaction => {
     const reactionId = reaction.message.id.toString();
     if (reaction.count < 1) {
         const message = await fetchEmbedsWithMessageId(reactionId);
-        message.delete();
+        message?.delete();
     } else {
         const message = await fetchEmbedsWithMessageId(reactionId);
-        message.edit(`${reaction.emoji} ${reaction.count} | ${reaction.message.channel}`);
+        message?.edit(`${reaction.emoji} ${reaction.count} | ${reaction.message.channel}`);
     }
 });
 
