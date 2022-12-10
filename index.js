@@ -3,6 +3,8 @@ const {Client, GatewayIntentBits, Partials, EmbedBuilder} = require('discord.js'
 
 const requiredKeks = 7;
 const kekEmote = '<:kek:959573349502169159>';
+//ms * s * min * h * d
+const weekDate = 1000 * 60 * 60 * 24 * 7;
 
 const client = new Client({
     intents: [
@@ -25,12 +27,19 @@ client.on('ready', async () => {
     guild = client.guilds.cache.find(guild => guild.id === process.env.ROSSONERI_GUILD_ID);
     if (client.channels.cache.filter(channel => channel.name === 'kekboard').size === 0) {
         console.log("Creating #kekboard");
+        const otherChatChannel = await client.channels.cache.find(channel => channel.name.toLowerCase() === 'other chat');
         await guild.channels.create({
             name: 'kekboard',
-            reason: 'Needed for keeping count of keks'
-        }).then(() => console.log('Created #kekboard')).catch(console.error);
+            reason: 'Needed for keeping count of keks',
+            parent: otherChatChannel !== undefined ? otherChatChannel : null
+        }).then(createdChannel => {
+            console.log('Created #kekboard');
+            kekBoardChannel = createdChannel;
+        }).catch(console.error);
+    } else {
+        console.log('Detected #kekboard')
+        kekBoardChannel = client.channels.cache.find(channel => channel.name === 'kekboard');
     }
-    kekBoardChannel = client.channels.cache.find(channel => channel.name === 'kekboard');
 });
 
 client.on('messageReactionAdd', async reaction => {
@@ -44,6 +53,11 @@ client.on('messageReactionAdd', async reaction => {
     }
 
     if (reaction.emoji.name !== 'kek') {
+        return;
+    }
+
+    if ((new Date() - reaction.message.createdAt) > weekDate) {
+        console.log('Message too old');
         return;
     }
 
@@ -88,12 +102,15 @@ client.on('messageReactionRemove', async reaction => {
         return;
     }
 
-    const reactionId = reaction.message.id.toString();
+    if ((new Date() - reaction.message.createdAt) > weekDate) {
+        console.log('Message too old');
+        return;
+    }
+
+    const message = await fetchEmbedsWithMessageId(reaction.message.id.toString());
     if (reaction.count < 1) {
-        const message = await fetchEmbedsWithMessageId(reactionId);
         message?.delete();
     } else {
-        const message = await fetchEmbedsWithMessageId(reactionId);
         message?.edit(`${reaction.emoji} ${reaction.count} | ${reaction.message.channel}`);
     }
 });
