@@ -63,21 +63,7 @@ client.on('messageReactionAdd', async reaction => {
 
     const reactionId = reaction.message.id.toString();
     if (reaction.count >= requiredKeks && await fetchEmbedsWithMessageId(reactionId) === undefined) {
-        const kekBoardEmbed = new EmbedBuilder()
-            .setColor(0x610505)
-            .setDescription(reaction.message.content)
-            .setFooter({
-                text: reaction.message.id.toString()
-            })
-            .setAuthor({
-                name: reaction.message.author.username,
-                iconURL: reaction.message.author.displayAvatarURL()
-            })
-            .addFields({
-                name: '\u200b',
-                value: `[Jump to message](${reaction.message.url})`
-            });
-
+        const kekBoardEmbed = reaction.message.attachments.size === 0 ? createTextEmbed(reaction) : createImageEmbed(reaction);
         kekBoardChannel.send({
             content: `${kekEmote} **${reaction.count}** | ${reaction.message.channel}`,
             embeds: [kekBoardEmbed]
@@ -121,6 +107,46 @@ async function fetchEmbedsWithMessageId(reactionId) {
         .filter(msg => msg.author.username === 'Kekboard')
         .filter(msg => msg.createdAt.toDateString() === new Date().toDateString())
         .find(msg => msg.embeds[0].footer.text === reactionId);
+}
+
+function createTextEmbed(reaction) {
+    return new EmbedBuilder()
+        .setColor(0x610505)
+        .setDescription(reaction.message.content)
+        .setFooter({
+            text: reaction.message.id.toString()
+        })
+        .setAuthor({
+            name: reaction.message.author.username,
+            iconURL: reaction.message.author.displayAvatarURL()
+        })
+        .addFields({
+            name: '\u200b',
+            value: `[Jump to message](${reaction.message.url})`
+        });
+}
+
+function createImageEmbed(reaction) {
+    const builder = new EmbedBuilder()
+        .setColor(0x610505)
+        .setImage(reaction.message.attachments.at(0).url)
+        .setFooter({
+            text: reaction.message.id.toString()
+        })
+        .setAuthor({
+            name: reaction.message.author.username,
+            iconURL: reaction.message.author.displayAvatarURL()
+        })
+        .addFields({
+            name: '\u200b',
+            value: `[Jump to message](${reaction.message.url})`
+        });
+
+    if (reaction.message.content) {
+        builder.setDescription(reaction.message.content);
+    }
+
+    return builder;
 }
 
 client.login(process.env.DISCORD_TOKEN);
