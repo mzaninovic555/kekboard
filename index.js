@@ -15,7 +15,8 @@ const client = new Client({
     ],
     partials: [
         Partials.Message,
-        Partials.Reaction
+        Partials.Reaction,
+        Partials.Channel
     ]
 });
 
@@ -63,7 +64,7 @@ client.on('messageReactionAdd', async reaction => {
 
     const reactionId = reaction.message.id.toString();
     if (reaction.count >= requiredKeks && await fetchEmbedsWithMessageId(reactionId) === undefined) {
-        const kekBoardEmbed = reaction.message.attachments.size === 0 ? createTextEmbed(reaction) : createImageEmbed(reaction);
+        const kekBoardEmbed = createEmbed(reaction);
         kekBoardChannel.send({
             content: `${kekEmote} **${reaction.count}** | ${reaction.message.channel}`,
             embeds: [kekBoardEmbed]
@@ -102,34 +103,16 @@ client.on('messageReactionRemove', async reaction => {
 });
 
 async function fetchEmbedsWithMessageId(reactionId) {
-    const fetchedMessages = await kekBoardChannel.messages.fetch();
+    const fetchedMessages = await kekBoardChannel.messages.fetch({limit: 100});
     return fetchedMessages
         .filter(msg => msg.author.username === 'Kekboard')
         .filter(msg => msg.createdAt.toDateString() === new Date().toDateString())
         .find(msg => msg.embeds[0].footer.text === reactionId);
 }
 
-function createTextEmbed(reaction) {
-    return new EmbedBuilder()
+function createEmbed(reaction) {
+    let builder = new EmbedBuilder()
         .setColor(0x610505)
-        .setDescription(reaction.message.content)
-        .setFooter({
-            text: reaction.message.id.toString()
-        })
-        .setAuthor({
-            name: reaction.message.author.username,
-            iconURL: reaction.message.author.displayAvatarURL()
-        })
-        .addFields({
-            name: '\u200b',
-            value: `[Jump to message](${reaction.message.url})`
-        });
-}
-
-function createImageEmbed(reaction) {
-    const builder = new EmbedBuilder()
-        .setColor(0x610505)
-        .setImage(reaction.message.attachments.at(0).url)
         .setFooter({
             text: reaction.message.id.toString()
         })
@@ -142,10 +125,16 @@ function createImageEmbed(reaction) {
             value: `[Jump to message](${reaction.message.url})`
         });
 
-    if (reaction.message.content) {
-        builder.setDescription(reaction.message.content);
+    if (reaction.message.attachments.size !== 0) {
+        builder.setImage(reaction.message.attachments.at(0).url)
     }
-
+    if (reaction.message.content) {
+        if (reaction.message.reference?.messageId) {
+            builder.setDescription(`**Reply to ${reaction.message.author.username}:  **${reaction.message.content}`)
+        } else {
+            builder.setDescription(reaction.message.content)
+        }
+    }
     return builder;
 }
 
