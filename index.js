@@ -26,6 +26,7 @@ let guild;
 client.on('ready', async () => {
     console.log('Counting keks...')
     guild = client.guilds.cache.find(guild => guild.id === process.env.ROSSONERI_GUILD_ID);
+    console.log('Connected to server: ' + guild.name);
     if (client.channels.cache.filter(channel => channel.name === 'kekboard').size === 0) {
         console.log("Creating #kekboard");
         const otherChatChannel = await client.channels.cache.find(channel => channel.name.toLowerCase() === 'other chat');
