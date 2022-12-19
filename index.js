@@ -1,7 +1,7 @@
 require('dotenv').config();
 const {Client, GatewayIntentBits, Partials, EmbedBuilder} = require('discord.js');
 
-const requiredKeks = 7;
+const requiredKeks = 2;
 const kekEmote = '<:kek:959573349502169159>';
 //ms * s * min * h * d
 const weekDate = 1000 * 60 * 60 * 24 * 7;
