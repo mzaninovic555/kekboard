@@ -87,7 +87,7 @@ client.on('messageReactionRemove', async reaction => {
     }
 
     const message = await fetchEmbedsWithMessageId(reaction.message.id.toString());
-    if (reaction.count < 1) {
+    if (reaction.count < requiredKeks) {
         message?.delete();
     } else {
         message?.edit(`${reaction.emoji} ${reaction.count} | ${reaction.message.channel}`);
