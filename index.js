@@ -1,6 +1,10 @@
 require('dotenv').config();
 const {Client, GatewayIntentBits, Partials, EmbedBuilder} = require('discord.js');
 
+if (!process.env.ROSSONERI_GUILD_ID || !process.env.DISCORD_TOKEN) {
+    console.error('Missing enviornment variables.');
+}
+
 const requiredKeks = 7;
 const kekEmote = '<:kek:959573349502169159>';
 //ms * s * min * h * d
