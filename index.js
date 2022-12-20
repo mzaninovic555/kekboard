@@ -107,7 +107,6 @@ async function fetchEmbedsWithMessageId(reactionId) {
     const fetchedMessages = await kekBoardChannel.messages.fetch({limit: 100});
     return fetchedMessages
         .filter(msg => msg.author.username === 'Kekboard')
-        .filter(msg => msg.createdAt.toDateString() === new Date().toDateString())
         .find(msg => msg.embeds[0].footer.text === reactionId);
 }
 
