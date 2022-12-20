@@ -60,15 +60,15 @@ client.on('messageReactionAdd', async reaction => {
     }
 
     const reactionId = reaction.message.id.toString();
-    if (reaction.count >= requiredKeks && await fetchEmbedsWithMessageId(reactionId) === undefined) {
+    const fetchedMessage = await fetchEmbedsWithMessageId(reactionId);
+    if (reaction.count >= requiredKeks && fetchedMessage === undefined) {
         const kekBoardEmbed = createEmbed(reaction);
         kekBoardChannel.send({
             content: `${kekEmote} **${reaction.count}** | ${reaction.message.channel}`,
             embeds: [kekBoardEmbed]
         });
     } else if (reaction.count >= requiredKeks) {
-        const message = await fetchEmbedsWithMessageId(reactionId);
-        message?.edit(`${reaction.emoji} ${reaction.count}  |  ${reaction.message.channel}`);
+        fetchedMessage?.edit(`${reaction.emoji} ${reaction.count}  |  ${reaction.message.channel}`);
     }
 });
 
