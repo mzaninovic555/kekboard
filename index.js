@@ -7,9 +7,6 @@ if (!process.env.ROSSONERI_GUILD_ID || !process.env.DISCORD_TOKEN) {
 
 const requiredKeks = 7;
 const kekEmote = '<:kek:959573349502169159>';
-//ms * s * min * h * d
-const weekDate = 1000 * 60 * 60 * 24 * 7;
-
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -62,11 +59,6 @@ client.on('messageReactionAdd', async reaction => {
         return;
     }
 
-    if ((new Date() - reaction.message.createdAt) > weekDate) {
-        console.log('Message too old');
-        return;
-    }
-
     const reactionId = reaction.message.id.toString();
     if (reaction.count >= requiredKeks && await fetchEmbedsWithMessageId(reactionId) === undefined) {
         const kekBoardEmbed = createEmbed(reaction);
@@ -91,11 +83,6 @@ client.on('messageReactionRemove', async reaction => {
     }
 
     if (reaction.emoji.name !== 'kek') {
-        return;
-    }
-
-    if ((new Date() - reaction.message.createdAt) > weekDate) {
-        console.log('Message too old');
         return;
     }
 
