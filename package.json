@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm ci && tsc",
-    "local": "npm run build && node target/index.js",
-    "prod": "node target/index.js"
+    "build": "tsc",
+    "start": "node .",
+    "prod": "npm run build && npm run start"
+
   },
   "keywords": [],
   "author": "",
