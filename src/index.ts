@@ -64,7 +64,7 @@ client.on('messageReactionAdd', async reaction => {
           embeds: [kekBoardEmbed as APIEmbed]
       });
   } else if (reaction.count && reaction.count >= requiredKeks) {
-      fetchedMessage?.edit(`${reaction.emoji} ${reaction.count}  |  ${reaction.message.channel}`);
+      fetchedMessage?.edit(`${kekEmote} ${reaction.count}  |  ${reaction.message.channel}`);
   }
 });
 
