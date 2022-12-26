@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node .",
-    "prod": "npm run start"
+    "prod": "npm run start",
+    "local": "npm run build && npm run start"
 
   },
   "keywords": [],
