@@ -86,7 +86,7 @@ client.on('messageReactionRemove', async reaction => {
   if (reaction.count != null && reaction.count < requiredKeks) {
       message?.delete();
   } else {
-      message?.edit(`${reaction.emoji} ${reaction.count} | ${reaction.message.channel}`);
+      message?.edit(`${kekEmote} ${reaction.count} | ${reaction.message.channel}`);
   }
 });
 
@@ -120,11 +120,12 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
       builder.setImage(reaction.message.attachments.at(0)!.url)
   }
   if (reaction.message.content) {
-      if (reaction.message.reference?.messageId) {
-          builder.setDescription(`**Reply to ${reaction.message.author.username}:  **${reaction.message.content}`)
-      } else {
-          builder.setDescription(reaction.message.content)
-      }
+    const messageContent = reaction.message.content.replace(':kek:', kekEmote);
+    if (reaction.message.reference?.messageId) {
+        builder.setDescription(`**Reply to ${reaction.message.author.username}:  **${messageContent}`)
+    } else {
+        builder.setDescription(messageContent)
+    }
   }
   return builder;
 }
