@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits, Partials, EmbedBuilder, ChannelType, MessageReaction, PartialMessageReaction, TextChannel, Guild, APIEmbed } from "discord.js";
 import config from "./config";
 
-const requiredKeks = 7;
+const requiredKeks = 10;
 const kekEmote = '<:kek:959573349502169159>';
 const client = new Client({
   intents: [
