@@ -5,7 +5,7 @@
   "main": "target/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node .",
+    "start": "node target/.",
     "prod": "npm run start",
     "local": "npm run build && npm run start"
 
