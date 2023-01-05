@@ -58,7 +58,7 @@ client.on('messageReactionAdd', async reaction => {
       return;
   }
 
-  if (Date.now() - reaction.message.createdAt.getDate() > olderThanThreshold) {
+  if (Date.now() - reaction.message.createdAt.getTime() > olderThanThreshold) {
     return;
   }
 
@@ -89,7 +89,7 @@ client.on('messageReactionRemove', async reaction => {
       return;
   }
 
-  if (Date.now() - reaction.message.createdAt.getDate() > olderThanThreshold) {
+  if (Date.now() - reaction.message.createdAt.getTime() > olderThanThreshold) {
     return;
   }
 
@@ -105,7 +105,7 @@ async function fetchEmbedsWithMessageId(reactionId: string) {
   const fetchedMessages = await kekBoardChannel?.messages.fetch({limit: 100});
   return fetchedMessages
       .filter(msg => msg.author.username === 'Kekboard')
-      .find(msg => msg.embeds[0].footer && msg.embeds[0].footer.text === reactionId);
+      .find(msg => msg.embeds[0].footer && msg.embeds[0].footer.text.includes(reactionId));
 }
 
 function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
@@ -116,7 +116,7 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
   let builder = new EmbedBuilder()
       .setColor(0x610505)
       .setFooter({
-          text: reaction.message.id.toString()
+          text: `${reaction.message.id.toString()} | ${reaction.message.createdAt.toLocaleDateString()} ${reaction.message.createdAt.toLocaleTimeString()}`
       })
       .setAuthor({
           name: reaction.message.author.username,
