@@ -3,6 +3,9 @@ import config from "./config";
 
 const requiredKeks = 10;
 const kekEmote = '<:kek:959573349502169159>';
+//message wont be recorded if older than
+//hours minutes seconds millis
+const olderThanThreshold = 24 * 60 * 60 * 1000;
 const client = new Client({
   intents: [
       GatewayIntentBits.Guilds,
@@ -55,6 +58,10 @@ client.on('messageReactionAdd', async reaction => {
       return;
   }
 
+  if (Date.now() - reaction.message.createdAt.getDate() > olderThanThreshold) {
+    return;
+  }
+
   const reactionId = reaction.message.id.toString();
   const fetchedMessage = await fetchEmbedsWithMessageId(reactionId);
   if (reaction.count && reaction.count >= requiredKeks && fetchedMessage === undefined) {
@@ -80,6 +87,10 @@ client.on('messageReactionRemove', async reaction => {
 
   if (reaction.emoji.name !== 'kek') {
       return;
+  }
+
+  if (Date.now() - reaction.message.createdAt.getDate() > olderThanThreshold) {
+    return;
   }
 
   const message = await fetchEmbedsWithMessageId(reaction.message.id.toString());
