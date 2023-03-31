@@ -1,16 +1,17 @@
 import { Client, GatewayIntentBits, Partials, EmbedBuilder, ChannelType, MessageReaction, PartialMessageReaction, TextChannel, Guild, APIEmbed } from "discord.js";
 import config from "./config";
 
-const requiredKeks = 10;
+const requiredKeks = 2;
 
-const kekEmote = '<:kek:959573349502169159>';
-const kekEmoteName = ':kek:'
-const kekEmoteSnowflake = '959573349502169159';
+//const kekEmote = '<:kek:959573349502169159>';
+//const kekEmoteName = ':kek:'
+//const kekEmoteSnowflake = '959573349502169159';
 
+const kekBoardChannelName = 'antikekboard';
 
-//const kekEmote = '<:antikek:894501074705211412>';
-//const kekEmoteName = ':antikek:'
-//const kekEmoteSnowflake = '894501074705211412';
+const kekEmote = '<:antikek:894501074705211412>';
+const kekEmoteName = ':antikek:'
+const kekEmoteSnowflake = '894501074705211412';
 
 //message wont be recorded if older than
 //hours minutes seconds millis
@@ -36,20 +37,20 @@ client.on("ready", async () => {
   console.log('Counting keks...')
   guild = client.guilds.cache.find(guild => guild.id === config.ROSSONERI_GUILD_ID);
   console.log('Connected to server: ' + guild?.name);
-  kekBoardChannel = guild?.channels.cache.find(channel => channel.name === 'kekboard' && channel.type === ChannelType.GuildText) as TextChannel;
+  kekBoardChannel = guild?.channels.cache.find(channel => channel.name === kekBoardChannelName && channel.type === ChannelType.GuildText) as TextChannel;
   if (!kekBoardChannel) {
-      console.log("Creating #kekboard");
+      console.log('Creating #' + kekBoardChannelName);
       const otherChatChannel = guild?.channels.cache.find(channel => channel.name === 'other chat' && channel.type === ChannelType.GuildCategory);
       await guild?.channels.create({
-          name: 'kekboard',
+          name: kekBoardChannelName,
           reason: 'Needed for keeping count of keks',
           parent: otherChatChannel?.id
       }).then(createdChannel => {
-          console.log('Created #kekboard');
+          console.log('Created #' + kekBoardChannelName);
           kekBoardChannel = createdChannel;
       }).catch(console.error);
   } else {
-      console.log('Detected #kekboard');
+      console.log('Detected #' + kekBoardChannelName);
   }
 });
 
