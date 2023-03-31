@@ -2,7 +2,16 @@ import { Client, GatewayIntentBits, Partials, EmbedBuilder, ChannelType, Message
 import config from "./config";
 
 const requiredKeks = 10;
+
 const kekEmote = '<:kek:959573349502169159>';
+const kekEmoteName = ':kek:'
+const kekEmoteSnowflake = '959573349502169159';
+
+
+//const kekEmote = '<:antikek:894501074705211412>';
+//const kekEmoteName = ':antikek:'
+//const kekEmoteSnowflake = '894501074705211412';
+
 //message wont be recorded if older than
 //hours minutes seconds millis
 const olderThanThreshold = 24 * 60 * 60 * 1000;
@@ -54,7 +63,7 @@ client.on('messageReactionAdd', async reaction => {
       }
   }
 
-  if (reaction.emoji.name !== 'kek') {
+  if (reaction.emoji.id !== kekEmoteSnowflake) {
       return;
   }
 
@@ -85,7 +94,7 @@ client.on('messageReactionRemove', async reaction => {
       }
   }
 
-  if (reaction.emoji.name !== 'kek') {
+  if (reaction.emoji.id !== kekEmoteSnowflake) {
       return;
   }
 
@@ -131,7 +140,7 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
       builder.setImage(reaction.message.attachments.at(0)!.url)
   }
   if (reaction.message.content) {
-    const messageContent = reaction.message.content.replace(':kek:', kekEmote);
+    const messageContent = reaction.message.content.replace(kekEmoteName, kekEmote);
     if (reaction.message.reference?.messageId) {
         builder.setDescription(`**Reply to ${reaction.message.author.username}:  **${messageContent}`)
     } else {
