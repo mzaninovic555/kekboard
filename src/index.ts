@@ -1,17 +1,12 @@
 import { Client, GatewayIntentBits, Partials, EmbedBuilder, ChannelType, MessageReaction, PartialMessageReaction, TextChannel, Guild, APIEmbed } from "discord.js";
 import config from "./config";
 
-const requiredKeks = 2;
+const requiredKeks = 10;
 
-//const kekEmote = '<:kek:959573349502169159>';
-//const kekEmoteName = ':kek:'
-//const kekEmoteSnowflake = '959573349502169159';
-
-const kekBoardChannelName = 'antikekboard';
-
-const kekEmote = '<:antikek:894501074705211412>';
-const kekEmoteName = ':antikek:'
-const kekEmoteSnowflake = '894501074705211412';
+const kekEmote = '<:kek:959573349502169159>';
+const kekEmoteName = ':kek:'
+const kekEmoteSnowflake = '959573349502169159';
+const kekBoardChannelName = 'kekboard';
 
 //message wont be recorded if older than
 //hours minutes seconds millis
