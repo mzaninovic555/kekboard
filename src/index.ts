@@ -159,8 +159,9 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 
     // if message has a reply, print a special case for it
     if (reaction.message.reference?.messageId) {
-        reaction.message.fetchReference().then(reply => 
-            builder.setDescription(`**Reply to ${reply.author.username}:  **${messageContent}`))
+        reaction.message.fetchReference()
+            .then(reply => builder.setDescription(`**Reply to ${reply.author.username}:  **${messageContent}`))
+            .catch(error => builder.setDescription(messageContent));
     } else {
         builder.setDescription(messageContent)
     }
@@ -171,7 +172,7 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 // format for content above embed
 // emote reaction count | channel
 function kekboardMessageContent(reaction: MessageReaction | PartialMessageReaction): string {
-    return `${kekEmote} **${reaction.count}** | ${reaction.message.channel}`;
+    return `${kekEmoteName} **${reaction.count}** | ${reaction.message.channel}`;
 }
 
 
