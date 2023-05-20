@@ -137,7 +137,7 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
   let builder = new EmbedBuilder()
       .setColor(0x610505)
       .setFooter({
-          text: `${kekEmote} ${reaction.count} | ${reaction.message.id.toString()} • ${reaction.message.createdAt.toLocaleDateString()} ${reaction.message.createdAt.toLocaleTimeString()}`
+          text: `${kekEmoteName} ${reaction.count} | ${reaction.message.id.toString()} • ${reaction.message.createdAt.toLocaleDateString()} ${reaction.message.createdAt.toLocaleTimeString()}`
       })
       .setAuthor({
           name: reaction.message.author.username,
@@ -172,7 +172,7 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 // format for content above embed
 // emote reaction count | channel
 function kekboardMessageContent(reaction: MessageReaction | PartialMessageReaction): string {
-    return `${kekEmoteName} **${reaction.count}** | ${reaction.message.channel}`;
+    return `${kekEmote} **${reaction.count}** | ${reaction.message.channel}`;
 }
 
 
