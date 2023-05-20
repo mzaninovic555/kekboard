@@ -137,7 +137,7 @@ async function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
   let builder = new EmbedBuilder()
       .setColor(0x610505)
       .setFooter({
-          text: `${reaction.count} | ${reaction.message.id.toString()} • ${reaction.message.createdAt.toLocaleDateString()} at ${reaction.message.createdAt.toLocaleTimeString()}`
+          text: `${reaction.message.id.toString()} • ${reaction.message.createdAt.toLocaleDateString()} at ${reaction.message.createdAt.toLocaleTimeString()}`
       })
       .setAuthor({
           name: reaction.message.author.username,
