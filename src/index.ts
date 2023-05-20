@@ -137,7 +137,7 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
   let builder = new EmbedBuilder()
       .setColor(0x610505)
       .setFooter({
-          text: `${kekEmoteName} ${reaction.count} | ${reaction.message.id.toString()} • ${reaction.message.createdAt.toLocaleDateString()} ${reaction.message.createdAt.toLocaleTimeString()}`
+          text: `${kekEmote} ${reaction.count} | ${reaction.message.id.toString()} • ${reaction.message.createdAt.toLocaleDateString()} ${reaction.message.createdAt.toLocaleTimeString()}`
       })
       .setAuthor({
           name: reaction.message.author.username,
@@ -159,9 +159,11 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 
     // if message has a reply, print a special case for it
     if (reaction.message.reference?.messageId) {
+        const reply = reaction.message.reference!.messageId;
+        
         reaction.message.fetchReference()
             .then(reply => builder.setDescription(`**Reply to ${reply.author.username}:  **${messageContent}`))
-            .catch(error => builder.setDescription(messageContent));
+            .catch(console.error);
     } else {
         builder.setDescription(messageContent)
     }
