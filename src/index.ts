@@ -138,7 +138,8 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
   if (reaction.message.content) {
     const messageContent = reaction.message.content.replace(kekEmoteName, kekEmote);
     if (reaction.message.reference?.messageId) {
-        builder.setDescription(`**Reply to ${reaction.message.author.username}:  **${messageContent}`)
+        reaction.message.fetchReference().then(reply => 
+            builder.setDescription(`**Reply to ${reply.author.username}:  **${messageContent}`))
     } else {
         builder.setDescription(messageContent)
     }
