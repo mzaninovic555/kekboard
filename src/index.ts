@@ -81,7 +81,7 @@ client.on('messageReactionAdd', async reaction => {
   const reactionId = reaction.message.id.toString();
   const fetchedMessage = await fetchEmbedsWithMessageId(reactionId);
   if (reaction.count && reaction.count >= requiredKeks && fetchedMessage === undefined) {
-      const kekBoardEmbed = createEmbed(reaction);
+      const kekBoardEmbed = await createEmbed(reaction);
       kekBoardChannel.send({
           content: kekboardMessageContent(reaction),
           embeds: [kekBoardEmbed as APIEmbed]
@@ -129,7 +129,7 @@ async function fetchEmbedsWithMessageId(reactionId: string) {
 }
 
 // function for creating the kekboard embed
-function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
+async function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
   if (!reaction.message || !reaction.message.author) {
     return;
   }
@@ -159,15 +159,8 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 
     // if message has a reply, print a special case for it
     if (reaction.message.reference?.messageId) {
-        const reply = reaction.message.reference!.messageId;
-        
-        reaction.message.fetchReference()
-            .then(reply => {
-                builder.setDescription(`**Reply to ${reply.author.username}:  **${messageContent}`);
-                console.log(reply);
-                console.log(reply.inGuild);
-            })
-            .catch(error => console.error(error));
+        const reply = await reaction.message.fetchReference().catch(console.error);
+        builder.setDescription(`↩ **Reply to ${reply?.author.username}:  **${messageContent}`);
     } else {
         builder.setDescription(messageContent)
     }
@@ -180,6 +173,5 @@ function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 function kekboardMessageContent(reaction: MessageReaction | PartialMessageReaction): string {
     return `${kekEmote} **${reaction.count}** | ${reaction.message.channel}`;
 }
-
 
 client.login(config.DISCORD_TOKEN);
