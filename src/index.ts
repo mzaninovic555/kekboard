@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Partials, EmbedBuilder, ChannelType, MessageReaction, PartialMessageReaction, TextChannel, Guild, APIEmbed } from "discord.js";
+import { Client, GatewayIntentBits, Partials, EmbedBuilder, ChannelType, MessageReaction, PartialMessageReaction, TextChannel, Guild, APIEmbed, ActivityType } from "discord.js";
 import config from "./config";
 
 const requiredKeks = 10;
@@ -53,6 +53,8 @@ client.on("ready", async () => {
   } else {
       console.log('Detected #' + kekBoardChannelName);
   }
+  client.user?.setPresence({activities: [{name: 'Counting keks...', type: ActivityType.Playing}]});
+  
 });
 
 client.on('messageReactionAdd', async reaction => {
