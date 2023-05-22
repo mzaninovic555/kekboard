@@ -53,7 +53,7 @@ client.on("ready", async () => {
   } else {
       console.log('Detected #' + kekBoardChannelName);
   }
-  client.user?.setPresence({activities: [{name: 'Counting keks...', type: ActivityType.Playing}]});
+  client.user?.setPresence({activities: [{name: 'for keks...', type: ActivityType.Watching}]});
   
 });
 
