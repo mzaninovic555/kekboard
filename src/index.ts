@@ -90,6 +90,8 @@ client.on('messageReactionAdd', async reaction => {
         kekBoardChannel.send({
             content: kekboardMessageContent(reaction),
             embeds: [kekBoardEmbed as APIEmbed]
+        }).catch(() => { 
+            return; 
         });
     } else if (reaction.count && reaction.count >= requiredKeks) {
         fetchedMessage?.edit(kekboardMessageContent(reaction));
@@ -99,7 +101,9 @@ client.on('messageReactionAdd', async reaction => {
 client.on('messageReactionRemove', async reaction => {
     if (reaction.partial) {
         try {
-            await reaction.fetch();
+            await reaction.fetch().catch(() => { 
+                return; 
+            });
         } catch (ex) {
             console.error('Error fetching the message: ', ex);
             return;
@@ -119,7 +123,6 @@ client.on('messageReactionRemove', async reaction => {
     // if message exists and is under threshold, delete it
     // else just edit the content
     const message = await fetchEmbedsWithMessageId(reaction.message.id.toString()).catch(() => {
-        console.debug("Error while fetching");
         return;
     });
     if (reaction.count != null && reaction.count < requiredKeks) {
@@ -130,10 +133,12 @@ client.on('messageReactionRemove', async reaction => {
 });
 
 async function fetchEmbedsWithMessageId(reactionId: string) {
-    const fetchedMessages = await kekBoardChannel?.messages.fetch({ limit: 100 });
+    const fetchedMessages = await kekBoardChannel?.messages.fetch({ limit: 100 }).catch(() => {
+        return;
+    });
     return fetchedMessages
-        .filter(msg => msg.author.username === 'Kekboard')
-        .find(msg => msg.embeds[0].footer && msg.embeds[0].footer.text.includes(reactionId));
+      ?.filter((msg) => msg.author.username === "Kekboard")
+      .find((msg) => msg.embeds[0].footer && msg.embeds[0].footer.text.includes(reactionId));
 }
 
 // function for creating the kekboard embed
@@ -167,7 +172,7 @@ async function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 
         // if message has a reply, print a special case for it
         if (reaction.message.reference?.messageId) {
-            const reply = await reaction.message.fetchReference().catch(console.error);
+            const reply = await reaction.message.fetchReference().catch((console.error));
             builder.setDescription(`↩ **Reply to ${reply?.author.username}:  **${messageContent}`);
         } else {
             builder.setDescription(messageContent)
