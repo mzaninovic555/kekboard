@@ -81,7 +81,10 @@ client.on('messageReactionAdd', async reaction => {
   // if doesn't exist send a new embed
   // if exists just edit the current one
   const reactionId = reaction.message.id.toString();
-  const fetchedMessage = await fetchEmbedsWithMessageId(reactionId);
+  const fetchedMessage = await fetchEmbedsWithMessageId(reactionId).catch(() => {
+        console.debug("Error while fetching");
+        return;
+    });
   if (reaction.count && reaction.count >= requiredKeks && fetchedMessage === undefined) {
       const kekBoardEmbed = await createEmbed(reaction);
       kekBoardChannel.send({
@@ -115,7 +118,10 @@ client.on('messageReactionRemove', async reaction => {
 
   // if message exists and is under threshold, delete it
   // else just edit the content
-  const message = await fetchEmbedsWithMessageId(reaction.message.id.toString());
+  const message = await fetchEmbedsWithMessageId(reaction.message.id.toString()).catch(() => {
+        console.debug("Error while fetching");
+        return;
+    });
   if (reaction.count != null && reaction.count < requiredKeks) {
       message?.delete();
   } else {
