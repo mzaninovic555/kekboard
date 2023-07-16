@@ -5,7 +5,7 @@ const requiredKeks = 10;
 
 // actual emote for printing a kek
 const kekEmote = '<:kek:959573349502169159>';
-const kekEmoteName = ':kek:'
+const kekEmoteName = ':kek:';
 const kekEmoteSnowflake = '959573349502169159';
 const kekBoardChannelName = 'kekboard';
 
@@ -168,7 +168,7 @@ async function createEmbed(reaction: MessageReaction | PartialMessageReaction) {
 
     // if message has content, replace the kek emote name and place the emote snowflake format
     if (reaction.message.content) {
-        const messageContent = reaction.message.content.replace(kekEmoteName, kekEmote);
+        const messageContent = reaction.message.content;
 
         // if message has a reply, print a special case for it
         if (reaction.message.reference?.messageId) {
