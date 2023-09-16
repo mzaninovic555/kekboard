@@ -22,7 +22,7 @@ const botChannelName = 'kekboard';
 
 const olderThanThreshold = 24 * 60 * 60 * 1000;
 
-const messageIdReactionCountContext = Map<string, string>;
+const messageIdReactionCountContext: Map<string, string> = new Map();
 
 const client = new Client({
     intents: [
@@ -80,12 +80,7 @@ client.on('messageReactionAdd', async reaction => {
         }
     }
 
-    if (reaction.emoji.id !== emoteSnowflake) {
-        return;
-    }
-
-
-    if (isMessageOverThreshold(reaction.message.createdAt)) {
+    if (reaction.emoji.id !== emoteSnowflake || isMessageOverThreshold(reaction.message.createdAt)) {
         return;
     }
 
@@ -117,11 +112,7 @@ client.on('messageReactionRemove', async reaction => {
         });
     }
 
-    if (reaction.emoji.id !== emoteSnowflake) {
-        return;
-    }
-
-    if (isMessageOverThreshold(reaction.message.createdAt)) {
+    if (reaction.emoji.id !== emoteSnowflake || isMessageOverThreshold(reaction.message.createdAt)) {
         return;
     }
 
