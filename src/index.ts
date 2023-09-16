@@ -5,7 +5,6 @@ const requiredReactionsToPost = 10;
 
 // actual emote for printing emote
 const emoteFullId = '<:kek:959573349502169159>';
-const emoteName = ':kek:';
 const emoteSnowflake = '959573349502169159';
 const botChannelName = 'kekboard';
 
