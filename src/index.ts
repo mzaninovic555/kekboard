@@ -1,15 +1,16 @@
 import {
-    Client,
-    GatewayIntentBits,
-    Partials,
-    EmbedBuilder,
+    ActivityType,
+    APIEmbed,
     ChannelType,
+    Client,
+    EmbedBuilder,
+    GatewayIntentBits,
+    Guild,
+    Message,
     MessageReaction,
     PartialMessageReaction,
-    TextChannel,
-    Guild,
-    APIEmbed,
-    ActivityType
+    Partials,
+    TextChannel
 } from "discord.js";
 import config from "./config";
 
@@ -22,7 +23,6 @@ const botChannelName = 'kekboard';
 
 const olderThanThreshold = 24 * 60 * 60 * 1000;
 
-const messageIdReactionCountContext: Map<string, string> = new Map();
 
 const client = new Client({
     intents: [
@@ -85,23 +85,11 @@ client.on('messageReactionAdd', async reaction => {
     }
 
     const reactionId = reaction.message.id.toString();
-    const fetchedMessage = await fetchEmbedsWithMessageId(reactionId)
-        .catch(() => {
-            console.debug("Error while fetching");
-            return;
-        });
+    const fetchedMessage = await fetchEmbedsWithMessageId(reactionId);
     if (reaction.count && reaction.count >= requiredReactionsToPost && fetchedMessage === undefined) {
-        const kekBoardEmbed = await createEmbed(reaction);
-        botBoardChannel.send({
-            content: boardMessageContent(reaction),
-            embeds: [kekBoardEmbed as APIEmbed]
-        }).catch((ex) => {
-            console.error("Error creating new board post", ex);
-            return; 
-        });
-    } else if (reaction.count && reaction.count >= requiredReactionsToPost) {
-        fetchedMessage?.edit(boardMessageContent(reaction))
-            .catch((ex) => console.error("Error editing board post", ex));
+        await createNewBoardEmbed(reaction);
+    } else if (fetchedMessage && reaction.count && reaction.count >= requiredReactionsToPost) {
+        await editBoardMessage(fetchedMessage, reaction);
     }
 });
 
@@ -117,16 +105,11 @@ client.on('messageReactionRemove', async reaction => {
     }
 
     // if message exists and is under threshold, delete it
-    const message = await fetchEmbedsWithMessageId(reaction.message.id.toString())
-        .catch((ex) => {
-            console.error("Error fetching board post", ex);
-            return;
-        });
+    const fetchedMessage = await fetchEmbedsWithMessageId(reaction.message.id.toString());
     if (reaction.count != null && reaction.count < requiredReactionsToPost) {
-        message?.delete().catch((ex) => console.error("Error deleting board post", ex));
+        fetchedMessage?.delete().catch((ex) => console.error("Error deleting board post", ex));
     } else {
-        message?.edit(boardMessageContent(reaction))
-            .catch((ex) => console.error("Error editing board post", ex));
+        await editBoardMessage(fetchedMessage!, reaction);
     }
 });
 
@@ -136,12 +119,32 @@ client.on('messageReactionRemove', async reaction => {
  * @returns {Message} promise
  */
 async function fetchEmbedsWithMessageId(reactionId: string) {
-    const fetchedMessages = await botBoardChannel?.messages.fetch({ limit: 100 }).catch(() => {
-        return;
-    });
+    let fetchedMessages;
+    try {
+        fetchedMessages = await botBoardChannel?.messages.fetch({ limit: 100 });
+    } catch (ex) {
+        console.error("Error fetching board messages", ex);
+        return undefined;
+    }
+
     return fetchedMessages
         ?.filter((msg) => msg.author.username === "Kekboard")
         .find((msg) => msg.embeds[0].footer && msg.embeds[0].footer.text.includes(reactionId));
+}
+
+async function createNewBoardEmbed(reaction: MessageReaction | PartialMessageReaction) {
+    const newBoardEmbed = await createEmbedBuilder(reaction);
+    botBoardChannel.send({
+        content: boardMessageContent(reaction),
+        embeds: [newBoardEmbed as APIEmbed]
+    }).catch((ex) => {
+        console.error("Error creating new board post", ex);
+    });
+}
+
+async function editBoardMessage(fetchedMessage: Message<true>, reaction: MessageReaction | PartialMessageReaction) {
+    fetchedMessage?.edit(boardMessageContent(reaction))
+        .catch((ex) => console.error("Error editing board post", ex));
 }
 
 /**
@@ -149,7 +152,7 @@ async function fetchEmbedsWithMessageId(reactionId: string) {
  * @param reaction message reaction
  * @returns {EmbedBuilder} promise
  */
-async function createEmbed(reaction: MessageReaction | PartialMessageReaction) : Promise<EmbedBuilder> {
+async function createEmbedBuilder(reaction: MessageReaction | PartialMessageReaction) : Promise<EmbedBuilder> {
     if (!reaction.message || !reaction.message.author) {
         return Promise.reject("Missing reaction param");
     }
