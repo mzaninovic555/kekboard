@@ -1,4 +1,16 @@
-import { Client, GatewayIntentBits, Partials, EmbedBuilder, ChannelType, MessageReaction, PartialMessageReaction, TextChannel, Guild, APIEmbed, ActivityType } from "discord.js";
+import {
+    Client,
+    GatewayIntentBits,
+    Partials,
+    EmbedBuilder,
+    ChannelType,
+    MessageReaction,
+    PartialMessageReaction,
+    TextChannel,
+    Guild,
+    APIEmbed,
+    ActivityType
+} from "discord.js";
 import config from "./config";
 
 const requiredReactionsToPost = 10;
@@ -35,12 +47,14 @@ client.on("ready", async () => {
     guild = client.guilds.cache.find(guild => guild.id === config.DISCORD_GUILD_ID);
     console.log('Connected to server: ' + guild?.name);
 
-    botBoardChannel = guild?.channels.cache.find(channel => channel.name === botChannelName && channel.type === ChannelType.GuildText) as TextChannel;
+    botBoardChannel = guild?.channels.cache.find(channel =>
+        channel.name === botChannelName && channel.type === ChannelType.GuildText) as TextChannel;
 
     // if it doesn't exist create it and set the constant
     if (!botBoardChannel) {
         console.log('Creating #' + botChannelName);
-        const otherChatChannel = guild?.channels.cache.find(channel => channel.name === 'other chat' && channel.type === ChannelType.GuildCategory);
+        const otherChatChannel = guild?.channels.cache.find(channel =>
+            channel.name === 'other chat' && channel.type === ChannelType.GuildCategory);
         await guild?.channels.create({
             name: botChannelName,
             reason: 'Needed for keeping count of emotes',
@@ -76,10 +90,11 @@ client.on('messageReactionAdd', async reaction => {
     }
 
     const reactionId = reaction.message.id.toString();
-    const fetchedMessage = await fetchEmbedsWithMessageId(reactionId).catch(() => {
-        console.debug("Error while fetching");
-        return;
-    });
+    const fetchedMessage = await fetchEmbedsWithMessageId(reactionId)
+        .catch(() => {
+            console.debug("Error while fetching");
+            return;
+        });
     if (reaction.count && reaction.count >= requiredReactionsToPost && fetchedMessage === undefined) {
         const kekBoardEmbed = await createEmbed(reaction);
         botBoardChannel.send({
