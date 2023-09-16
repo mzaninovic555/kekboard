@@ -11,6 +11,8 @@ const botChannelName = 'kekboard';
 
 const olderThanThreshold = 24 * 60 * 60 * 1000;
 
+const messageIdReactionCountContext = Map<string, string>;
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -69,7 +71,8 @@ client.on('messageReactionAdd', async reaction => {
         return;
     }
 
-    if (Date.now() - reaction.message.createdAt.getTime() > olderThanThreshold) {
+
+    if (isMessageOverThreshold(reaction.message.createdAt)) {
         return;
     }
 
@@ -81,14 +84,14 @@ client.on('messageReactionAdd', async reaction => {
     if (reaction.count && reaction.count >= requiredReactionsToPost && fetchedMessage === undefined) {
         const kekBoardEmbed = await createEmbed(reaction);
         botBoardChannel.send({
-            content: kekboardMessageContent(reaction),
+            content: boardMessageContent(reaction),
             embeds: [kekBoardEmbed as APIEmbed]
         }).catch((ex) => {
             console.error("Error creating new board post", ex);
             return; 
         });
     } else if (reaction.count && reaction.count >= requiredReactionsToPost) {
-        fetchedMessage?.edit(kekboardMessageContent(reaction))
+        fetchedMessage?.edit(boardMessageContent(reaction))
             .catch((ex) => console.error("Error editing board post", ex));
     }
 });
@@ -104,7 +107,7 @@ client.on('messageReactionRemove', async reaction => {
         return;
     }
 
-    if (Date.now() - reaction.message.createdAt.getTime() > olderThanThreshold) {
+    if (isMessageOverThreshold(reaction.message.createdAt)) {
         return;
     }
 
@@ -117,7 +120,7 @@ client.on('messageReactionRemove', async reaction => {
     if (reaction.count != null && reaction.count < requiredReactionsToPost) {
         message?.delete().catch((ex) => console.error("Error deleting board post", ex));
     } else {
-        message?.edit(kekboardMessageContent(reaction))
+        message?.edit(boardMessageContent(reaction))
             .catch((ex) => console.error("Error editing board post", ex));
     }
 });
@@ -185,8 +188,12 @@ async function createEmbed(reaction: MessageReaction | PartialMessageReaction) :
  * @param reaction message reaction
  * @returns {string}, formatted message text
  */
-function kekboardMessageContent(reaction: MessageReaction | PartialMessageReaction): string {
+function boardMessageContent(reaction: MessageReaction | PartialMessageReaction): string {
     return `${emoteFullId} **${reaction.count}** | ${reaction.message.channel}`;
+}
+
+function isMessageOverThreshold(reactionDate : Date) : boolean {
+    return Date.now() - reactionDate.getTime() > olderThanThreshold;
 }
 
 client.login(config.DISCORD_TOKEN);
