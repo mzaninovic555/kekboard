@@ -36,12 +36,12 @@ describe('TypeScript build', () => {
 
 describe('bot behaviour', () => {
   const discord = require('discord.js');
-  const vm = require('node:vm');
+  const { createKekboardBot, startKekboardBot } = require('../target/discord-bot.js');
   const kek = '959573349502169159';
 
   /** Loads the compiled bot with a fake gateway and returns its handlers. */
   const loadBot = ({ posts = new discord.Collection(), fetchPosts, threshold = 12 } = {}) => {
-    const state = { sent: [], logins: [], errors: [] };
+    const state = { sent: [], logins: [], errors: [], logs: [] };
     const channel = {
       name: 'kekboard',
       type: discord.ChannelType.GuildText,
@@ -66,26 +66,22 @@ describe('bot behaviour', () => {
         return token;
       }
     }
-    const script = fs.readFileSync(path.join(root, 'target', 'index.js'), 'utf8');
-    const quietConsole = { ...console, log() {}, error: (...args) => state.errors.push(args) };
-    vm.runInNewContext(script, {
-      exports: {},
-      console: quietConsole,
-      require: (name) =>
-        name === 'discord.js'
-          ? { ...discord, Client: FakeClient }
-          : {
-              __esModule: true,
-              default: {
-                DISCORD_GUILD_ID: guild.id,
-                DISCORD_TOKEN: 'token',
-                EMOTE_EMBED_THRESHOLD: threshold,
-              },
-            },
-    });
+    const quietConsole = {
+      ...console,
+      log: (message) => state.logs.push(message),
+      error: (...args) => state.errors.push(args),
+    };
+    const bot = createKekboardBot(
+      { DISCORD_GUILD_ID: guild.id, DISCORD_TOKEN: 'token', EMOTE_EMBED_THRESHOLD: threshold },
+      new FakeClient({ intents: [] }),
+      quietConsole
+    );
+    void startKekboardBot(bot);
     return {
       state,
       posts,
+      channel,
+      start: startKekboardBot.bind(undefined, bot),
       ready: () => state.client.listeners(discord.Events.ClientReady)[0](),
       add: (reaction) => state.client.listeners(discord.Events.MessageReactionAdd)[0](reaction),
       remove: (reaction) =>
@@ -115,6 +111,12 @@ describe('bot behaviour', () => {
     assert.deepEqual(bot.state.logins, ['token']);
   });
 
+  test('logs the configured threshold on startup', async () => {
+    const bot = loadBot({ threshold: 7 });
+    await bot.ready();
+    assert.ok(bot.state.logs.includes('Emote threshold: 7'));
+  });
+
   test('registers exactly one handler for each event', () => {
     const { state } = loadBot();
     for (const event of [
@@ -134,6 +136,22 @@ describe('bot behaviour', () => {
     await bot.add(makeReaction({ count: 12 }));
     assert.equal(bot.state.sent.length, 1);
     assert.match(bot.state.sent[0].content, /<:kek:959573349502169159> \*\*12\*\*/);
+  });
+
+  test('formats the footer date in Croatian with a 24-hour clock', async () => {
+    const bot = loadBot();
+    await bot.ready();
+    // Earlier today in local time (the formatter uses the process time zone), so within 24 hours.
+    const createdAt = new Date();
+    createdAt.setHours(0, 5, 9, 0);
+    await bot.add(makeReaction({ message: { createdAt } }));
+    const day = createdAt.getDate();
+    const month = createdAt.getMonth() + 1;
+    const year = createdAt.getFullYear();
+    assert.equal(
+      bot.state.sent[0].embeds[0].toJSON().footer.text,
+      `m1 • ${day}. ${month}. ${year}. at 00:05:09`
+    );
   });
 
   test('uses the configured threshold for posting and removal', async () => {
@@ -304,5 +322,103 @@ describe('bot behaviour', () => {
       })
     );
     assert.ok(bot.state.errors.length >= 2);
+    assert.equal(bot.state.sent.length, 0);
+  });
+
+  test('awaits and catches failed sends, edits, and deletions', async () => {
+    const bot = loadBot();
+    await bot.ready();
+    bot.channel.send = async () => {
+      throw new Error('send failed');
+    };
+    await bot.add(makeReaction());
+    assert.equal(bot.state.errors.length, 1);
+    bot.posts.set('p', {
+      author: { username: 'Kekboard' },
+      embeds: [{ footer: { text: 'm1' } }],
+      edit: async () => {
+        throw new Error('edit failed');
+      },
+      delete: async () => {
+        throw new Error('delete failed');
+      },
+    });
+    await bot.add(makeReaction());
+    await bot.remove(makeReaction({ count: 11 }));
+    assert.equal(bot.state.errors.length, 3);
+  });
+
+  test('stops processing a partial removal when fetching fails', async () => {
+    let lookups = 0;
+    const bot = loadBot({
+      fetchPosts: async () => {
+        lookups++;
+        return new discord.Collection();
+      },
+    });
+    await bot.ready();
+    await bot.remove(
+      makeReaction({
+        partial: true,
+        fetch: async () => {
+          throw new Error('fetch failed');
+        },
+      })
+    );
+    assert.equal(lookups, 0);
+    assert.equal(bot.state.errors.length, 1);
+  });
+
+  test('posts original content when a referenced message cannot be fetched', async () => {
+    const bot = loadBot();
+    await bot.ready();
+    await bot.add(
+      makeReaction({
+        message: {
+          reference: { messageId: 'deleted' },
+          fetchReference: async () => {
+            throw new Error('unknown message');
+          },
+        },
+      })
+    );
+    assert.equal(bot.state.sent[0].embeds[0].toJSON().description, 'hello');
+    assert.equal(bot.state.errors.length, 1);
+  });
+
+  test('logs initialization failures and ignores reactions until initialized', async () => {
+    const bot = loadBot();
+    bot.state.client.guilds.cache.clear();
+    await bot.ready();
+    await bot.add(makeReaction());
+    assert.equal(bot.state.errors.length, 1);
+    assert.equal(bot.state.sent.length, 0);
+  });
+
+  test('creates the board channel when it is missing', async () => {
+    const bot = loadBot();
+    const guild = bot.state.client.guilds.cache.get('guild');
+    guild.channels.cache.clear();
+    guild.channels.create = async (options) => {
+      assert.equal(options.name, 'kekboard');
+      assert.equal(options.type, discord.ChannelType.GuildText);
+      return bot.channel;
+    };
+    await bot.ready();
+    await bot.add(makeReaction());
+    assert.equal(bot.state.sent.length, 1);
+  });
+
+  test('cleans up and propagates login failures to the entry point', async () => {
+    const bot = loadBot();
+    let destroyed = false;
+    bot.state.client.login = async () => {
+      throw new Error('login failed');
+    };
+    bot.state.client.destroy = async () => {
+      destroyed = true;
+    };
+    await assert.rejects(bot.start(), /login failed/);
+    assert.equal(destroyed, true);
   });
 });

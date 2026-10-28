@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const vm = require('node:vm');
+const { createKekboardBot, startKekboardBot } = require('../target/discord-bot.js');
 const discord = require('discord.js');
 const os = require('node:os');
 const path = require('node:path');
@@ -57,7 +57,7 @@ test('dotenv loads credentials and preserves existing environment values', () =>
     assert.notEqual(missing.status, 0);
     assert.match(missing.stderr, /Missing enviornment variables/);
   } finally {
-    fs.rmdirSync(directory);
+    fs.rmSync(directory, { recursive: true, force: true });
   }
 });
 
@@ -93,22 +93,11 @@ test('bot initializes and handles reactions with the upgraded Discord API', asyn
       return token;
     }
   }
-  const script = fs.readFileSync(require.resolve('../target/index.js'), 'utf8');
-  vm.runInNewContext(script, {
-    exports: {},
-    console,
-    require: (name) =>
-      name === 'discord.js'
-        ? { ...discord, Client: TestClient }
-        : {
-            __esModule: true,
-            default: {
-              DISCORD_GUILD_ID: guild.id,
-              DISCORD_TOKEN: 'test-token',
-              EMOTE_EMBED_THRESHOLD: 12,
-            },
-          },
-  });
+  const bot = createKekboardBot(
+    { DISCORD_GUILD_ID: guild.id, DISCORD_TOKEN: 'test-token', EMOTE_EMBED_THRESHOLD: 12 },
+    new TestClient({ intents: [] })
+  );
+  await startKekboardBot(bot);
   try {
     assert.equal(client.listenerCount(discord.Events.ClientReady), 1);
     await client.listeners(discord.Events.ClientReady)[0]();
