@@ -1,5 +1,17 @@
 # kekboard
+
 Fun side project for a discord server.
 
 Counts emote reactions and, when they reach a certain threshold, posts an embed with a reference to the original message.
-To use, set up enviornment variables *DISCORD_GUILD_ID* and *DISCORD_TOKEN*.
+To use, set up enviornment variables _DISCORD_GUILD_ID_ and _DISCORD_TOKEN_.
+
+Use Node.js 20 or newer. Run `npm ci` to install dependencies,
+`npm test` to compile and run the offline Discord compatibility test,
+and `npm run local` to build and start the bot.
+
+The compatibility test covers startup, posting at the reaction threshold,
+updating counts, removing posts below the threshold, and ignoring old messages.
+Testing a live Discord connection requires your bot token and guild access.
+
+See [dependency upgrade notes](DEPENDENCY_UPGRADE.md) for breaking changes,
+runtime requirements, and verification limits.

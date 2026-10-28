@@ -5,18 +5,26 @@
   "main": "target/index.js",
   "scripts": {
     "build": "tsc",
+    "test": "npm run build && node --test test/*.test.cjs",
     "start": "node target/.",
     "prod": "npm run start",
-    "local": "npm run build && npm run start"
-
+    "local": "npm run build && npm run start",
+    "format": "prettier --write src test",
+    "format:check": "prettier --check src test"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^18.11.17",
-    "discord.js": "^14.7.1",
-    "dotenv": "^16.0.3",
-    "typescript": "^4.9.4"
+    "@types/node": "^24.19.2",
+    "discord.js": "^14.27.0",
+    "dotenv": "^18.0.9",
+    "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10"
   }
 }
