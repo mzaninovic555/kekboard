@@ -1,9 +1,10 @@
-import { ChannelType, Guild, Message, TextChannel } from 'discord.js';
+import { ChannelType, EmbedBuilder, Guild, Message, TextChannel } from 'discord.js';
 import { BOARD_CATEGORY_NAME, BOARD_CHANNEL_NAME, BOARD_POST_AUTHOR } from './kekboard-constants';
 import {
   KekboardReaction,
   Logger,
   formatKekboardPostContent,
+  getKekboardEmbedColor,
   createKekboardEmbed,
 } from './kekboard-message-format';
 
@@ -82,9 +83,16 @@ export async function syncKekboardPost(
     return;
   }
 
-  // The post already exists and still qualifies: only refresh the displayed count.
+  // The post already exists and still qualifies: refresh the count and the tier's colour.
   if (existingPost) {
-    await existingPost.edit(formatKekboardPostContent(reaction));
+    await existingPost.edit({
+      content: formatKekboardPostContent(reaction, requiredReactionCount),
+      embeds: [
+        EmbedBuilder.from(existingPost.embeds[0]).setColor(
+          getKekboardEmbedColor(reaction, requiredReactionCount)
+        ),
+      ],
+    });
     return;
   }
 
@@ -95,8 +103,8 @@ export async function syncKekboardPost(
 
   // First time the message reaches the threshold: repost it with its author, content and link.
   await kekboardChannel.send({
-    content: formatKekboardPostContent(reaction),
-    embeds: [await createKekboardEmbed(reaction, logger)],
+    content: formatKekboardPostContent(reaction, requiredReactionCount),
+    embeds: [await createKekboardEmbed(reaction, requiredReactionCount, logger)],
   });
 }
 

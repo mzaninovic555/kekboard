@@ -154,6 +154,45 @@ describe('bot behaviour', () => {
     );
   });
 
+  test('escalates the emoji count and embed colour with the reaction count', async () => {
+    const kek = '<:kek:959573349502169159>';
+    const expected = [
+      { count: 12, emotes: 1, color: 0x610505 },
+      { count: 16, emotes: 1, color: 0x610505 },
+      { count: 17, emotes: 2, color: 0xe67e22 },
+      { count: 21, emotes: 2, color: 0xe67e22 },
+      { count: 22, emotes: 3, color: 0xf1c40f },
+    ];
+    for (const { count, emotes, color } of expected) {
+      const bot = loadBot();
+      await bot.ready();
+      await bot.add(makeReaction({ count }));
+      const { content, embeds } = bot.state.sent[0];
+      assert.ok(content.startsWith(kek.repeat(emotes) + ' **'), `count ${count}: ${content}`);
+      assert.equal(content.includes(kek.repeat(emotes + 1)), false);
+      assert.equal(embeds[0].toJSON().color, color, `count ${count}`);
+    }
+  });
+
+  test('recolours an existing post when its count crosses a tier', async () => {
+    const posts = new discord.Collection();
+    const bot = loadBot({ posts });
+    await bot.ready();
+    await bot.add(makeReaction({ count: 12 }));
+    let edited;
+    posts.set('p', {
+      author: { username: 'Kekboard' },
+      embeds: [bot.state.sent[0].embeds[0].toJSON()],
+      edit: async (payload) => {
+        edited = payload;
+      },
+    });
+    await bot.add(makeReaction({ count: 17 }));
+    assert.match(edited.content, /^(<:kek:959573349502169159>){2} \*\*17\*\*/);
+    assert.equal(edited.embeds[0].toJSON().color, 0xe67e22);
+    assert.equal(edited.embeds[0].toJSON().author.name, 'user');
+  });
+
   test('uses the configured threshold for posting and removal', async () => {
     const posts = new discord.Collection();
     const bot = loadBot({ posts, threshold: 20 });
@@ -224,7 +263,7 @@ describe('bot behaviour', () => {
     });
     await bot.add(makeReaction({ count: 15 }));
     assert.equal(bot.state.sent.length, 1);
-    assert.match(edited, /\*\*15\*\*/);
+    assert.match(edited.content, /\*\*15\*\*/);
   });
 
   test('deletes the post when the count drops below the threshold', async () => {
@@ -263,7 +302,7 @@ describe('bot behaviour', () => {
       },
     });
     await bot.remove(makeReaction({ count: 12 }));
-    assert.match(edited, /\*\*12\*\*/);
+    assert.match(edited.content, /\*\*12\*\*/);
     assert.equal(deleted, false);
   });
 

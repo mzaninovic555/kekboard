@@ -13,6 +13,13 @@ export const BOARD_CATEGORY_NAME = 'other chat';
 /** Reactions needed to post when EMOTE_EMBED_THRESHOLD is not set. */
 export const DEFAULT_EMOTE_EMBED_THRESHOLD = 10;
 
+/** How a board post looks once its count reaches the threshold plus `offset`; highest tier first. */
+export const COUNT_TIERS = [
+  { offset: 10, color: 0xf1c40f, emoteRepeat: 3 },
+  { offset: 5, color: 0xe67e22, emoteRepeat: 2 },
+  { offset: 0, color: 0x610505, emoteRepeat: 1 },
+] as const;
+
 /** Username of the bot account that authors board posts. */
 export const BOARD_POST_AUTHOR = 'Kekboard';
 

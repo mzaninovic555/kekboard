@@ -134,7 +134,7 @@ test('bot initializes and handles reactions with the upgraded Discord API', asyn
     });
     reaction.count = 13;
     await add(reaction);
-    assert.match(edited, /\*\*13\*\*/);
+    assert.match(edited.content, /\*\*13\*\*/);
     reaction.count = 11;
     await client.listeners(discord.Events.MessageReactionRemove)[0](reaction);
     assert.equal(deleted, true);

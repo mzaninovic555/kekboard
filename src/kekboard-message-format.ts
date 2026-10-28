@@ -1,5 +1,5 @@
 import { EmbedBuilder, MessageReaction, PartialMessageReaction } from 'discord.js';
-import { EMOTE_DISPLAY } from './kekboard-constants';
+import { COUNT_TIERS, EMOTE_DISPLAY } from './kekboard-constants';
 
 /** A Discord reaction, including reactions received before their message is cached. */
 export type KekboardReaction = MessageReaction | PartialMessageReaction;
@@ -13,18 +13,38 @@ const dateFormat = new Intl.DateTimeFormat('hr-HR');
 /** Croatian locale with a 24-hour clock, e.g. "00:05:09" (h23 avoids "24:05:09"). */
 const timeFormat = new Intl.DateTimeFormat('hr-HR', { timeStyle: 'medium', hourCycle: 'h23' });
 
+/** Picks the highest tier the reaction's current count has reached, relative to the threshold. */
+function tierFor(reaction: KekboardReaction, threshold: number) {
+  const count = reaction.count ?? 0;
+  return (
+    COUNT_TIERS.find((tier) => count >= threshold + tier.offset) ??
+    COUNT_TIERS[COUNT_TIERS.length - 1]
+  );
+}
+
 /**
  * Formats the reaction count and source channel displayed above a board embed.
  * @param reaction - Reaction whose current count should be displayed.
- * @returns Discord message content containing the custom emoji and channel mention.
+ * @param threshold - Reactions needed to post; tiers are offsets above it.
+ * @returns Discord message content: the emoji (repeated at higher tiers), count and channel.
  */
-export function formatKekboardPostContent(reaction: KekboardReaction): string {
-  return `${EMOTE_DISPLAY} **${reaction.count}** | ${reaction.message.channel}`;
+export function formatKekboardPostContent(reaction: KekboardReaction, threshold: number): string {
+  return `${EMOTE_DISPLAY.repeat(tierFor(reaction, threshold).emoteRepeat)} **${reaction.count}** | ${reaction.message.channel}`;
+}
+
+/**
+ * Colour of the board embed, which escalates as the reaction count climbs.
+ * @param reaction - Reaction whose current count selects the tier.
+ * @param threshold - Reactions needed to post; tiers are offsets above it.
+ */
+export function getKekboardEmbedColor(reaction: KekboardReaction, threshold: number): number {
+  return tierFor(reaction, threshold).color;
 }
 
 /**
  * Builds an embed containing the original author, message, first attachment, and source link.
  * @param reaction - Reaction on the message being copied to the board.
+ * @param threshold - Reactions needed to post; selects the embed colour tier.
  * @param logger - Receives recoverable failures when fetching a referenced message.
  * @returns An embed ready to send to the kekboard channel.
  * @throws When the original author is unavailable or embed validation fails.
@@ -32,6 +52,7 @@ export function formatKekboardPostContent(reaction: KekboardReaction): string {
  */
 export async function createKekboardEmbed(
   reaction: KekboardReaction,
+  threshold: number,
   logger: Logger
 ): Promise<EmbedBuilder> {
   const originalMessage = reaction.message;
@@ -40,7 +61,7 @@ export async function createKekboardEmbed(
   }
 
   const embedBuilder = new EmbedBuilder()
-    .setColor(0x610505)
+    .setColor(getKekboardEmbedColor(reaction, threshold))
     .setFooter({
       text: `${originalMessage.id} • ${dateFormat.format(originalMessage.createdAt)} at ${timeFormat.format(originalMessage.createdAt)}`,
     })
