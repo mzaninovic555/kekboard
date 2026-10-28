@@ -40,7 +40,7 @@ describe('bot behaviour', () => {
   const kek = '959573349502169159';
 
   /** Loads the compiled bot with a fake gateway and returns its handlers. */
-  const loadBot = ({ posts = new discord.Collection(), fetchPosts } = {}) => {
+  const loadBot = ({ posts = new discord.Collection(), fetchPosts, threshold = 12 } = {}) => {
     const state = { sent: [], logins: [], errors: [] };
     const channel = {
       name: 'kekboard',
@@ -74,7 +74,14 @@ describe('bot behaviour', () => {
       require: (name) =>
         name === 'discord.js'
           ? { ...discord, Client: FakeClient }
-          : { __esModule: true, default: { DISCORD_GUILD_ID: guild.id, DISCORD_TOKEN: 'token' } },
+          : {
+              __esModule: true,
+              default: {
+                DISCORD_GUILD_ID: guild.id,
+                DISCORD_TOKEN: 'token',
+                EMOTE_EMBED_THRESHOLD: threshold,
+              },
+            },
     });
     return {
       state,
@@ -127,6 +134,26 @@ describe('bot behaviour', () => {
     await bot.add(makeReaction({ count: 12 }));
     assert.equal(bot.state.sent.length, 1);
     assert.match(bot.state.sent[0].content, /<:kek:959573349502169159> \*\*12\*\*/);
+  });
+
+  test('uses the configured threshold for posting and removal', async () => {
+    const posts = new discord.Collection();
+    const bot = loadBot({ posts, threshold: 20 });
+    await bot.ready();
+    await bot.add(makeReaction({ count: 19 }));
+    assert.equal(bot.state.sent.length, 0);
+    await bot.add(makeReaction({ count: 20 }));
+    assert.equal(bot.state.sent.length, 1);
+    let deleted = false;
+    posts.set('p', {
+      author: { username: 'Kekboard' },
+      embeds: [bot.state.sent[0].embeds[0].toJSON()],
+      delete: async () => {
+        deleted = true;
+      },
+    });
+    await bot.remove(makeReaction({ count: 19 }));
+    assert.equal(deleted, true);
   });
 
   test('ignores other emotes', async () => {

@@ -15,7 +15,7 @@ import {
 } from 'discord.js';
 import config from './config';
 
-const requiredReactionsToPost = 12;
+const requiredReactionsToPost = config.EMOTE_EMBED_THRESHOLD;
 
 // actual emote for printing emote
 const emoteFullId = '<:kek:959573349502169159>';

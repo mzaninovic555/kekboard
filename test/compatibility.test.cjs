@@ -12,6 +12,7 @@ test('dotenv loads credentials and preserves existing environment values', () =>
   const env = { ...process.env };
   delete env.DISCORD_TOKEN;
   delete env.DISCORD_GUILD_ID;
+  delete env.EMOTE_EMBED_THRESHOLD;
   const configPath = require.resolve('../target/config.js');
   const run = (environment) =>
     spawnSync(
@@ -21,7 +22,8 @@ test('dotenv loads credentials and preserves existing environment values', () =>
         `const assert = require('node:assert/strict');
      const config = require(${JSON.stringify(configPath)}).default;
      assert.equal(config.DISCORD_TOKEN, process.env.EXPECTED_TOKEN);
-     assert.equal(config.DISCORD_GUILD_ID, 'test-guild');`,
+     assert.equal(config.DISCORD_GUILD_ID, 'test-guild');
+     assert.equal(config.EMOTE_EMBED_THRESHOLD, Number(process.env.EXPECTED_THRESHOLD ?? 10));`,
       ],
       { cwd: directory, env: environment, encoding: 'utf8' }
     );
@@ -31,6 +33,20 @@ test('dotenv loads credentials and preserves existing environment values', () =>
       'DISCORD_TOKEN="file-token"\nDISCORD_GUILD_ID=test-guild\n'
     );
     assert.equal(run({ ...env, EXPECTED_TOKEN: 'file-token' }).status, 0);
+    for (const value of ['', ' ', '10', '20', '1']) {
+      const result = run({
+        ...env,
+        EXPECTED_TOKEN: 'file-token',
+        EMOTE_EMBED_THRESHOLD: value,
+        EXPECTED_THRESHOLD: value.trim() || '10',
+      });
+      assert.equal(result.status, 0, result.stderr);
+    }
+    for (const value of ['0', '-1', '1.5', 'invalid', 'Infinity', '9007199254740992']) {
+      const result = run({ ...env, EMOTE_EMBED_THRESHOLD: value });
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /EMOTE_EMBED_THRESHOLD must be a positive integer/);
+    }
     assert.equal(
       run({ ...env, DISCORD_TOKEN: 'environment-token', EXPECTED_TOKEN: 'environment-token' })
         .status,
@@ -86,7 +102,11 @@ test('bot initializes and handles reactions with the upgraded Discord API', asyn
         ? { ...discord, Client: TestClient }
         : {
             __esModule: true,
-            default: { DISCORD_GUILD_ID: guild.id, DISCORD_TOKEN: 'test-token' },
+            default: {
+              DISCORD_GUILD_ID: guild.id,
+              DISCORD_TOKEN: 'test-token',
+              EMOTE_EMBED_THRESHOLD: 12,
+            },
           },
   });
   try {
