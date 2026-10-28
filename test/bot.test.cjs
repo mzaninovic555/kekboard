@@ -34,7 +34,7 @@ describe('TypeScript build', () => {
   });
 });
 
-describe('bot behaviour with the installed dependencies', () => {
+describe('bot behaviour', () => {
   const discord = require('discord.js');
   const vm = require('node:vm');
   const kek = '959573349502169159';
@@ -198,6 +198,51 @@ describe('bot behaviour with the installed dependencies', () => {
     });
     await bot.remove(makeReaction({ count: 11 }));
     assert.equal(deleted, true);
+  });
+
+  test('updates the count in place when a reaction is removed above the threshold', async () => {
+    const posts = new discord.Collection();
+    const bot = loadBot({ posts });
+    await bot.ready();
+    await bot.add(makeReaction({ count: 13 }));
+    let edited;
+    let deleted = false;
+    posts.set('p', {
+      author: { username: 'Kekboard' },
+      embeds: [bot.state.sent[0].embeds[0].toJSON()],
+      edit: async (content) => {
+        edited = content;
+      },
+      delete: async () => {
+        deleted = true;
+      },
+    });
+    await bot.remove(makeReaction({ count: 12 }));
+    assert.match(edited, /\*\*12\*\*/);
+    assert.equal(deleted, false);
+  });
+
+  test('removing a reaction with no existing post does nothing', async () => {
+    const bot = loadBot();
+    await bot.ready();
+    await bot.remove(makeReaction({ count: 11 }));
+    assert.equal(bot.state.sent.length, 0);
+    assert.deepEqual(bot.state.errors, []);
+  });
+
+  test('ignores posts written by other users', async () => {
+    const posts = new discord.Collection();
+    const bot = loadBot({ posts });
+    await bot.ready();
+    await bot.add(makeReaction({ count: 12 }));
+    const embed = bot.state.sent[0].embeds[0].toJSON();
+    posts.set('p', {
+      author: { username: 'someone-else' },
+      embeds: [embed],
+      edit: async () => assert.fail('must not edit messages from other users'),
+    });
+    await bot.add(makeReaction({ count: 14 }));
+    assert.equal(bot.state.sent.length, 2);
   });
 
   test('fetches partial reactions before using them', async () => {

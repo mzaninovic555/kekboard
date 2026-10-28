@@ -11,9 +11,24 @@ Reviewed on 2026-10-28 against the installed lockfile and upstream release notes
 
 ## Runtime and deployment
 
-Use **Node.js 20 or newer**. discord.js 14.27.0 declares `>=18`, dotenv `>=12`
-and TypeScript 7 `>=16.20`; `engines` is set to `>=20` because 18 is end-of-life.
-Build and tests were run on Node 24.15.0.
+Use **Node.js 24.22.1 or newer** and **npm 12.2.1 or newer**. The installed
+system runtime has been upgraded to Node 24.22.1, the latest Node 24 LTS patch
+at review time. Node 20 is end-of-life. The runtime requirement is recorded in
+`package.json` and the README.
+
+The compiler target and standard library are **ES2024**, following TypeScript's
+Node 24 target mapping. `module: nodenext` retains modern Node resolution;
+the package continues to emit CommonJS. Native async functions and optional
+chaining no longer need to be downlevelled to ES2016. Node provides the JavaScript
+runtime (including V8); TypeScript is a compiler, not a separate runtime here.
+
+Direct runtime/build dependencies and Prettier are current. npm 12.2.1 is current.
+Node 26.12.1 is newer overall but is the Current release; Node 24 is the selected
+LTS line. Node 24 typings remain on 24.19.2 to match that line.
+Transitive `@discordjs/collection` 1.x, `@discordjs/ws` 1.x, and `undici` 6.x
+remain on Discord's supported ranges despite newer upstream majors. Do not
+force those majors with overrides. Missing TypeScript binaries for other
+operating systems and optional WebSocket acceleration packages are expected.
 
 TypeScript 7 ships platform-specific native binaries. Retain optional dependencies
 when installing the build tools; use `npm ci` on the deployment/build platform
@@ -32,7 +47,7 @@ separate migration; neither is present in this repository.
   installed Client, Collection, and EmbedBuilder with mocked network operations.
 - Configuration tests use the actual dotenv package and compiled config module
   to verify file loading, existing environment precedence, and missing credentials.
-- Build and tests were run on Node 24.15.0.
+- Build and tests were run on Node 24.22.1 with the ES2024 target.
 - Lockfile refresh reports zero known vulnerabilities.
 
 A live Discord session has not been verified. Token validity, guild/channel
@@ -41,6 +56,11 @@ behavior still require a server smoke test. Offline success does not establish
 that every application edge case works (for example, concurrent reactions).
 
 ## Upstream references
+
+- [TypeScript Node target mapping](https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping)
+- [Node release lifecycle](https://nodejs.org/en/about/previous-releases)
+- [Node release versions](https://github.com/nodejs/node/releases)
+- [npm changelog](https://docs.npmjs.com/cli/using-npm/changelog/)
 
 - [Discord 14.27.0 documentation and runtime requirement](https://discord.js.org/docs/packages/discord.js/14.27.0)
 - [Discord changelog, including intervening 14.x releases](https://github.com/discordjs/discord.js/blob/14.27.0/packages/discord.js/CHANGELOG.md)

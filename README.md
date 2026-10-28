@@ -5,7 +5,8 @@ Fun side project for a discord server.
 Counts emote reactions and, when they reach a certain threshold, posts an embed with a reference to the original message.
 To use, set up enviornment variables _DISCORD_GUILD_ID_ and _DISCORD_TOKEN_.
 
-Use Node.js 20 or newer. Run `npm ci` to install dependencies,
+Use Node.js 24.22.1 or newer and npm 12.2.1 or newer. TypeScript emits ES2024
+JavaScript for Node.js 24. Run `npm ci` to install dependencies,
 `npm test` to compile and run the offline Discord compatibility test,
 and `npm run local` to build and start the bot.
 
